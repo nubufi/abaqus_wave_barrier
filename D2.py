@@ -10,22 +10,23 @@ import mesh
 from odbAccess import *
 from numpy import float64,cumsum,array,arange,pi
 import numpy as np
+from helper import read_json
+from model import Input
 
 class Create_Model:
     def __init__(self):
-        self.parameter = {"Name": temp_layer_names,
-                          "Elastic": temp_elastic,
-                          "Poisson": temp_poisson,
-                          "Density": temp_density,
-                          "Thicknesses": temp_thickness,
-                          "Damping Ratio": temp_damping_ratio,
-                          "Vs": temp_VS}
+        self.input_obj = read_json("input.json")
 
-        self.inf_size_x = 10
-        self.inf_size_y = 10
-        self.Width = float64(temp_width)+self.inf_size_x
-        self.Height = float64(sum(self.parameter["Thicknesses"]))+self.inf_size_y
-        self.source_size = float64(temp_source_size)
+        self.inf_size_x = 10 # m
+        self.inf_size_y = 10 # m
+
+        self.soil_profile = self.input_obj.soil_profile
+        self.motion = self.input_obj.motion
+        self.barrier = self.input_obj.barrier
+        
+        self.Width = float64(self.input_obj.width)+self.inf_size_x
+        self.Height = float64(sum(self.input_obj.height))+self.inf_size_y
+        self.source_size = float64(self.input_obj.source_size)
         self.accelometer_pattern = temp_accelerometer_pattern
         self.PGA = temp_PGA
         self.duration = temp_duration
@@ -523,6 +524,12 @@ class Create_Model:
         self.create_history_output()
         self.create_job()
         self.change_element_type()
+
+def read_json(file_name)->Input:
+    with open(file_name) as f:
+        data = json.load(f)
+    
+    return Input(**data)
 
 model = Create_Model()
 model.operator()
